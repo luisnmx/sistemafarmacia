@@ -5,48 +5,22 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
-import javax.swing.JComboBox;
 import py.edu.facitec.reutilizacion.ventanas.MiVentanaGenerica;
+import py.edu.facitec.sistema_farmacia.modelo.controladores.VentanaClienteController;
 
 public class VentanaCliente extends MiVentanaGenerica {
 
     private static final long serialVersionUID = 1L;
 
-    private JTextField tfRuc;    // RUC/CI
+    private JTextField tfRuc;        // Mapea al campo 'documento' del DER
     private JTextField textField_1;  // Nombre
     private JTextField textField_2;  // Apellido
     private JTextField textField_3;  // Telefono
     private JTextField textField_4;  // Direccion
     private JTextField textField_5;  // Email
 
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-
-        try {
-            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    VentanaCliente dialog = new VentanaCliente();
-                    dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    dialog.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    /**
-     * Create the dialog.
-     */
     public VentanaCliente() {
+        super();
 
         JLabel lblRuc = new JLabel("RUC/CI:");
         lblRuc.setBounds(67, 49, 120, 16);
@@ -95,15 +69,18 @@ public class VentanaCliente extends MiVentanaGenerica {
         textField_5 = new JTextField();
         textField_5.setBounds(201, 219, 250, 26);
         getPanelFormulario().add(textField_5);
+
+        //  Invocación al controlador como última línea del constructor
+        setUpController();
     }
 
     @Override
-    protected String getTitulo() {
+    public String getTitulo() {
         return "Registro de clientes";
     }
 
     @Override
-    protected String getTituloFormulario() {
+    public String getTituloFormulario() {
         return "Formulario de Cliente";
     }
 
@@ -131,8 +108,8 @@ public class VentanaCliente extends MiVentanaGenerica {
         return textField_5;
     }
 
-	public void setUpController() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void setUpController() {
+        new VentanaClienteController(this);
+    }
 }

@@ -7,6 +7,7 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.JComboBox;
 import py.edu.facitec.reutilizacion.ventanas.MiVentanaGenerica;
+import py.edu.facitec.sistema_farmacia.modelo.controladores.VentanaCategoriaController;
 
 public class VentanaCategoria extends MiVentanaGenerica {
 
@@ -61,6 +62,8 @@ public class VentanaCategoria extends MiVentanaGenerica {
         cbxEstado.addItem("Inactivo");
         cbxEstado.setBounds(201, 79, 170, 26);
         getPanelFormulario().add(cbxEstado);
+        
+        setUpController();
     }
 
     public JTextField gettDescripcion() {
@@ -82,7 +85,6 @@ public class VentanaCategoria extends MiVentanaGenerica {
     }
 
 	public void setUpController() {
-		// TODO Auto-generated method stub
-		
+		new VentanaCategoriaController(this);
 	}
 }

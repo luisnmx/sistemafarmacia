@@ -1,77 +1,64 @@
 package py.edu.facitec.sistema_farmacia.modelo.vistas;
 
-import java.awt.EventQueue;
-import javax.swing.JDialog;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.JComboBox;
+
 import py.edu.facitec.reutilizacion.ventanas.MiVentanaGenerica;
+import py.edu.facitec.sistema_farmacia.modelo.controladores.VentanaMarcaController;
 
 public class VentanaMarca extends MiVentanaGenerica {
 
-    private static final long serialVersionUID = 1L;
+    private JTextField tDescripcion;
+    private JComboBox<String> cbxEstado;
 
-    private JTextField textField;    // Descripcion
-
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-
-        try {
-            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    VentanaMarca dialog = new VentanaMarca();
-                    dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    dialog.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    /**
-     * Create the dialog.
-     */
     public VentanaMarca() {
-
-        JLabel lblDescripcion = new JLabel("Descripcion:");
-        lblDescripcion.setBounds(67, 49, 120, 16);
+        super();
+        
+        // 1. Instanciar los componentes del formulario
+        JLabel lblDescripcion = new JLabel("Descripción:");
+        lblDescripcion.setBounds(20, 20, 100, 25);
         getPanelFormulario().add(lblDescripcion);
 
-        textField = new JTextField();
-        textField.setBounds(201, 44, 250, 26);
-        getPanelFormulario().add(textField);
+        tDescripcion = new JTextField();
+        tDescripcion.setBounds(120, 20, 250, 25);
+        getPanelFormulario().add(tDescripcion);
 
         JLabel lblEstado = new JLabel("Estado:");
-        lblEstado.setBounds(67, 84, 120, 16);
+        lblEstado.setBounds(20, 60, 100, 25);
         getPanelFormulario().add(lblEstado);
 
-        JComboBox<String> cbxEstado = new JComboBox<String>();
-        cbxEstado.setBounds(201, 79, 170, 26);
+        cbxEstado = new JComboBox<>();
+        cbxEstado.setBounds(120, 60, 150, 25);
+        cbxEstado.addItem("Activo");
+        cbxEstado.addItem("Inactivo");
         getPanelFormulario().add(cbxEstado);
+
+        // 2. Conectar el controlador AL FINAL, cuando los componentes ya existen
+        setUpController();
     }
 
     @Override
-    protected String getTitulo() {
-        return "Registro de marcas";
+    public String getTitulo() {
+        return "Gestión de Marcas";
     }
 
     @Override
-    protected String getTituloFormulario() {
-        return "Formulario de Marca";
+    public String getTituloFormulario() {
+        return "Datos de la Marca";
     }
 
-	public void setUpController() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void setUpController() {
+        new VentanaMarcaController(this);
+    }
+
+    // Getters para que el controlador acceda a los componentes
+    public JTextField gettDescripcion() {
+        return tDescripcion;
+    }
+
+    public JComboBox<String> getcbxEstado() {
+        return cbxEstado;
+    }
 }

@@ -274,7 +274,6 @@ public class VentanaPrincipal extends JFrame {
 
 	public void abrirMarca() {
 		vMarca = new VentanaMarca();
-		vMarca.setUpController();
 		vMarca.setVisible(true);
 	}
 
