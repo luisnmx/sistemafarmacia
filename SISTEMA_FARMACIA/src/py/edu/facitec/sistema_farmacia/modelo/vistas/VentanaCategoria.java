@@ -13,7 +13,7 @@ public class VentanaCategoria extends MiVentanaGenerica {
     private static final long serialVersionUID = 1L;
 
     private JTextField textField;    // Descripcion de la categoria
-    private JComboBox<String> cbxEstado;  // Estado (Activo/Inactivo)
+    private JComboBox<String> cbxEstado;  // Estado (Activo/Inactivo
 
     /**
      * Launch the application.
