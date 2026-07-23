@@ -7,6 +7,7 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.JComboBox;
 import py.edu.facitec.reutilizacion.ventanas.MiVentanaGenerica;
+import py.edu.facitec.sistema_farmacia.modelo.controladores.VentanaFuncionarioController;
 
 public class VentanaFuncionario extends MiVentanaGenerica {
 
@@ -106,6 +107,9 @@ public class VentanaFuncionario extends MiVentanaGenerica {
         cbxEstado.addItem("Inactivo");
         cbxEstado.setBounds(201, 254, 170, 26);
         getPanelFormulario().add(cbxEstado);
+
+        // Inicia el controlador al instanciar la vista
+        setUpController();
     }
 
     public JTextField gettNombre() {
@@ -146,8 +150,8 @@ public class VentanaFuncionario extends MiVentanaGenerica {
         return "Formulario de Funcionario";
     }
 
-	public void setUpController() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void setUpController() {
+        new VentanaFuncionarioController(this);
+    }
 }
