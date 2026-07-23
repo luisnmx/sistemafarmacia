@@ -9,7 +9,7 @@ import javax.swing.JOptionPane;
 import py.edu.facitec.reutilizacion.interfaces.AccionesABM;
 import py.edu.facitec.sistema_farmacia.modelo.dao.FuncionarioDAO;
 import py.edu.facitec.sistema_farmacia.modelo.entidades.Funcionario;
-import py.edu.facitec.sistema_farmacia.modelo.vistas.ModeloTablaFuncionario;
+import py.edu.facitec.sistema_farmacia.modelo.modelotabla.ModeloTablaFuncionario;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaFuncionario;
 
 public class VentanaFuncionarioController implements AccionesABM {
@@ -171,7 +171,7 @@ public class VentanaFuncionarioController implements AccionesABM {
 		vista.dispose();
 	}
 
-	// --- Métodos Auxiliares ---
+	//  Métodos Auxiliares
 
 	private void limpiarFormulario() {
 		vista.gettNombre().setText("");

@@ -1,10 +1,11 @@
 package py.edu.facitec.sistema_farmacia.modelo.controladores;
 
 import java.util.List;
+
+import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
 import py.edu.facitec.reutilizacion.interfaces.AccionesABM;
 import py.edu.facitec.sistema_farmacia.modelo.dao.CategoriaDAO;
 import py.edu.facitec.sistema_farmacia.modelo.dao.MarcaDAO;
@@ -12,7 +13,7 @@ import py.edu.facitec.sistema_farmacia.modelo.dao.ProductoDAO;
 import py.edu.facitec.sistema_farmacia.modelo.entidades.Categoria;
 import py.edu.facitec.sistema_farmacia.modelo.entidades.Marca;
 import py.edu.facitec.sistema_farmacia.modelo.entidades.Producto;
-import py.edu.facitec.sistema_farmacia.modelo.vistas.ModeloTablaProductos;
+import py.edu.facitec.sistema_farmacia.modelo.modelotabla.ModeloTablaProductos;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaProducto;
 
 public class VentanaProductoController implements AccionesABM {

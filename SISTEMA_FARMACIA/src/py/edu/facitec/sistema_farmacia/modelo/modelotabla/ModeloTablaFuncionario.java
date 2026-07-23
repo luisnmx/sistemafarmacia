@@ -1,4 +1,4 @@
-package py.edu.facitec.sistema_farmacia.modelo.vistas;
+package py.edu.facitec.sistema_farmacia.modelo.modelotabla;
 
 import java.util.ArrayList;
 import java.util.List;

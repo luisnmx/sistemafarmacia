@@ -22,6 +22,7 @@ import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaCliente;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaFuncionario;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaMarca;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaProducto;
+import py.edu.facitec.sistema_farmacia.util.ConnectionHelper;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -42,6 +43,7 @@ public class VentanaPrincipal extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					ConnectionHelper.getSessionFactory();
 					VentanaPrincipal frame = new VentanaPrincipal();
 					frame.setVisible(true);
 				} catch (Exception e) {
