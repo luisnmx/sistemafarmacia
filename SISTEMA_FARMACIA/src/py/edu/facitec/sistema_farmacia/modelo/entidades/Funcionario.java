@@ -134,4 +134,15 @@ public class Funcionario {
     public void setMovimientosStock(List<MovimientoStock> movimientosStock) {
         this.movimientosStock = movimientosStock;
     }
+    
+    @Override
+    public String toString() {
+    	
+    	return nombre + " " + apellido; // tiene que ser getnombre/getappeliido??
+    }
+    
+    
+    
+    
+    
 }

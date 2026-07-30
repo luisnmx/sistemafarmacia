@@ -17,6 +17,7 @@ import javax.swing.border.EmptyBorder;
 
 import py.edu.facitec.reutilizacion.botones.MiBoton;
 import py.edu.facitec.reutilizacion.paneles.PanelFondo;
+import py.edu.facitec.sistema_farmacia.modelo.vistas.TransaccionCompra;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaCategoria;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaCliente;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaFuncionario;
@@ -35,7 +36,7 @@ public class VentanaPrincipal extends JFrame {
 	private VentanaFuncionario vFuncionario;
 	private VentanaMarca vMarca;
 	private VentanaProducto vProducto;
-
+	private TransaccionCompra vVenta;
 	/**
 	 * Launch the application.
 	 */
@@ -73,7 +74,7 @@ public class VentanaPrincipal extends JFrame {
 
 		JMenuItem mntmVenta = new JMenuItem("Venta");
 		mntmVenta.addActionListener(e -> {
-			// abrirVenta();
+		abrirVenta();
 		});
 		mnMovimiento.add(mntmVenta);
 
@@ -221,6 +222,17 @@ public class VentanaPrincipal extends JFrame {
 		} else {
 			vCategoria.toFront();
 		}
+	}
+	
+	private void abrirVenta() {
+if(vVenta == null  || !vCategoria.isVisible()) {
+	vVenta = new TransaccionCompra();
+	vVenta.setVisible(true);
+	
+} else {
+	vVenta.toFront();
+}
+
 	}
 
 	public void abrirMarca() {

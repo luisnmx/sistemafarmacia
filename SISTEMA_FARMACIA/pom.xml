@@ -30,10 +30,10 @@
         </dependency>
 
        <dependency>
-    <groupId>jakarta.persistence</groupId>
-    <artifactId>jakarta.persistence-api</artifactId>
-    <version>3.2.0</version>
-</dependency>
+		    <groupId>jakarta.persistence</groupId>
+		    <artifactId>jakarta.persistence-api</artifactId>
+		    <version>3.2.0</version>
+		</dependency>
 
         <dependency>
         	<groupId>py.edu.facitec</groupId>
@@ -45,6 +45,13 @@
 		    <groupId>com.github.NazarioLuis</groupId>
 		    <artifactId>xNumberField</artifactId>
 		    <version>v1.0.0</version>
+		</dependency>
+		
+	   <dependency>
+		    <groupId>com.toedter</groupId>
+		    <artifactId>jcalendar</artifactId>
+		    <version>1.4</version>
+		    <scope>compile</scope>
 		</dependency>
     </dependencies>
 
