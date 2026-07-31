@@ -28,15 +28,17 @@ protected Session getSession() {
         }
     }
 
-    public void guardar(T entity) throws Exception {
+    public T guardar(T entity) throws Exception {
         iniciarTransaccion();
+        T result = null;
         try {
-            getSession().merge(entity);
+            result = getSession().merge(entity);
             getSession().getTransaction().commit();
         } catch (Exception e) {
             getSession().getTransaction().rollback();
             throw e;
         }
+        return result;
     }
 
     public void eliminar(T entity) throws Exception {

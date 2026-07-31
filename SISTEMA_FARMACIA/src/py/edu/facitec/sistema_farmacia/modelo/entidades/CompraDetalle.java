@@ -94,4 +94,8 @@ public class CompraDetalle {
     public void setProducto(Producto producto) {
         this.producto = producto;
     }
+    
+    
+    
+    
 }

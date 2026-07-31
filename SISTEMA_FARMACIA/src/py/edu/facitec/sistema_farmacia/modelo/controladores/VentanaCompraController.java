@@ -3,17 +3,18 @@ package py.edu.facitec.sistema_farmacia.modelo.controladores;
 import java.awt.GridLayout;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import py.edu.facitec.reutilizacion.interfaces.AccionesABM;
+import py.com.cs.xnumberfield.component.NumberTextField;
 import py.edu.facitec.sistema_farmacia.modelo.dao.CompraDAO;
-import py.edu.facitec.sistema_farmacia.modelo.dao.CompraDetalleDAO;
 import py.edu.facitec.sistema_farmacia.modelo.dao.FuncionarioDAO;
 import py.edu.facitec.sistema_farmacia.modelo.dao.LoteDAO;
 import py.edu.facitec.sistema_farmacia.modelo.dao.MovimientoStockDAO;
@@ -25,16 +26,13 @@ import py.edu.facitec.sistema_farmacia.modelo.entidades.Lote;
 import py.edu.facitec.sistema_farmacia.modelo.entidades.MovimientoStock;
 import py.edu.facitec.sistema_farmacia.modelo.entidades.Producto;
 import py.edu.facitec.sistema_farmacia.modelo.modelotabla.ModeloTablaCompraDetalle;
-import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaCompra;
+import py.edu.facitec.sistema_farmacia.modelo.vistas.TransaccionCompra;
 
+public class VentanaCompraController {
 
-public class VentanaCompraController implements AccionesABM {
+    private TransaccionCompra vista;
 
-    private VentanaCompra vista;
-
-    //  los DAOs necesarios: uno de cada entidad que utilizamos 
     private CompraDAO compraDAO;
-    private CompraDetalleDAO compraDetalleDAO;
     private LoteDAO loteDAO;
     private MovimientoStockDAO movimientoStockDAO;
     private ProductoDAO productoDAO;
@@ -43,69 +41,77 @@ public class VentanaCompraController implements AccionesABM {
     private ModeloTablaCompraDetalle modeloDetalle;
 
     private Funcionario funcionarioSeleccionado;
+    private Producto productoSeleccionadoPanel; // el elegido con el botón "..." de arriba
 
-    // Formato de la  fecha (dd/MM/yyyy)
     private static final SimpleDateFormat FORMATO_FECHA = new SimpleDateFormat("dd/MM/yyyy");
 
-    public VentanaCompraController(VentanaCompra vista) {
+    public VentanaCompraController(TransaccionCompra vista) {
         this.vista = vista;
         this.compraDAO = new CompraDAO();
-        this.compraDetalleDAO = new CompraDetalleDAO();
         this.loteDAO = new LoteDAO();
         this.movimientoStockDAO = new MovimientoStockDAO();
         this.productoDAO = new ProductoDAO();
         this.funcionarioDAO = new FuncionarioDAO();
 
-        // La tabla de la vista pasa a mostrar el detalle de la compra en curso
         this.modeloDetalle = new ModeloTablaCompraDetalle();
         this.vista.getTable().setModel(modeloDetalle);
 
-        // Conectamos el toolbar  con esta clase
-        vista.getMiToolbar().setAcciones(this);
+        vista.getBtnBuscarComprador().addActionListener(e -> buscarFuncionario());
+        vista.getBtnBuscarProducto().addActionListener(e -> buscarProductoPanel());
+        vista.getBtnAgregarProducto().addActionListener(e -> agregarProducto());
+        vista.getBtnQuitarProducto().addActionListener(e -> eliminarLineaSeleccionada());
+        vista.getMbtnGuardar().addActionListener(e -> guardar());
+        vista.getMbtnCancelar().addActionListener(e -> cancelar());
 
-        // Botones propios de la transacción 
-        vista.getBtnBuscarFuncionario().addActionListener(e -> buscarFuncionario());
-        vista.getBtnAgregar().addActionListener(e -> agregarProducto());
-        vista.getBtnEliminar().addActionListener(e -> eliminarLineaSeleccionada());
-        vista.getBtnActualizar().addActionListener(e -> actualizarLineaSeleccionada());
+        // Cantidad por defecto del spinner: arranca en 1
+        vista.getSpinnerCantProducto().setValue(1);
 
-        // nada esta habilitado hasta que usuario presione nuevo
-        vista.getMiToolbar().estadoInicial(true);
-        habilitarCampos(false);
         limpiarFormulario();
     }
 
-
-    
-    //  buscamos el funcionario  de Funcionario para la compra
-
+    // --- Buscar Funcionario (comprador) ---
 
     private void buscarFuncionario() {
-       
-        List<Funcionario> lista = FuncionarioDAO.recuperarPorFiltro(null); 
+        List<Funcionario> lista = funcionarioDAO.recuperarTodo();
 
         if (lista == null || lista.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "No se encontraron funcionarios.");
+            JOptionPane.showMessageDialog(vista, "No se encontraron funcionarios.");
             return;
         }
-    
+
         Funcionario seleccionado = (Funcionario) JOptionPane.showInputDialog(
-            null,                              
-            "Seleccione un funcionario:",       
-            "Buscar Funcionario",               
-            JOptionPane.QUESTION_MESSAGE,      
-            null,                              
-            lista.toArray(),                    
-            null                               
-        );       
+                vista, "Seleccione un funcionario:", "Buscar Funcionario",
+                JOptionPane.QUESTION_MESSAGE, null, lista.toArray(), null
+        );
+
         if (seleccionado != null) {
-            vista.gettBuscador().setText(seleccionado.getNombre() + " " + seleccionado.getApellido()); 
-            this.funcionarioSeleccionado = seleccionado; 
+            this.funcionarioSeleccionado = seleccionado;
+            vista.gettComprador().setText(seleccionado.getNombre() + " " + seleccionado.getApellido());
         }
     }
 
-    
-    
+    // --- Buscar Producto (panel superior) ---
+
+    private void buscarProductoPanel() {
+        List<Producto> productos = productoDAO.recuperarTodo();
+        if (productos.isEmpty()) {
+            JOptionPane.showMessageDialog(vista, "No hay productos registrados.");
+            return;
+        }
+
+        Producto seleccionado = (Producto) JOptionPane.showInputDialog(
+                vista, "Seleccione un producto:", "Buscar Producto",
+                JOptionPane.QUESTION_MESSAGE, null, productos.toArray(), null
+        );
+
+        if (seleccionado != null) {
+            this.productoSeleccionadoPanel = seleccionado;
+            vista.gettProducto().setText(seleccionado.getDescripcion());
+        }
+    }
+
+    // --- Agregar / quitar líneas de detalle ---
+
     private void agregarProducto() {
         List<Producto> productos = productoDAO.recuperarTodo();
         if (productos.isEmpty()) {
@@ -113,27 +119,13 @@ public class VentanaCompraController implements AccionesABM {
             return;
         }
 
-        CompraDetalle detalle = pedirDatosDeLinea(productos, null);
+        // Precargamos con lo que el usuario ya eligió arriba (producto + cantidad del spinner)
+        int cantidadPanel = (int) vista.getSpinnerCantProducto().getValue();
+
+        CompraDetalle detalle = pedirDatosDeLinea(productos, productoSeleccionadoPanel, cantidadPanel);
         if (detalle != null) {
             modeloDetalle.agregar(detalle);
-            recalcularTotal();
-        }
-    }
-
-    private void actualizarLineaSeleccionada() {
-        int fila = vista.getTable().getSelectedRow();
-        if (fila == -1) {
-            JOptionPane.showMessageDialog(vista, "Seleccioná una línea de la tabla primero.");
-            return;
-        }
-
-        List<Producto> productos = productoDAO.recuperarTodo();
-        CompraDetalle detalleActual = modeloDetalle.getDetalleEn(fila);
-
-        CompraDetalle detalleEditado = pedirDatosDeLinea(productos, detalleActual);
-        if (detalleEditado != null) {
-            modeloDetalle.actualizar(fila, detalleEditado);
-            recalcularTotal();
+            limpiarPanelProducto(); // listo para cargar la próxima línea
         }
     }
 
@@ -144,43 +136,29 @@ public class VentanaCompraController implements AccionesABM {
             return;
         }
         modeloDetalle.quitar(fila);
-        recalcularTotal();
     }
 
-    
-    
-    //  Muestra el formulario modal para agregar o editar un ítem del detalle de compra.
-     
-    private CompraDetalle pedirDatosDeLinea(List<Producto> productos, CompraDetalle valorInicial) {
+    // Formulario modal para completar producto + lote + cantidad + costo de una línea
+    private CompraDetalle pedirDatosDeLinea(List<Producto> productos, Producto productoPreseleccionado, int cantidadInicial) {
 
         JComboBox<Producto> cbxProducto = new JComboBox<>(productos.toArray(new Producto[0]));
-        JTextField txtNumeroLote = new JTextField();
-        JTextField txtVencimiento = new JTextField(); // formato dd/MM/yyyy
-        JTextField txtCantidad = new JTextField();
-        JTextField txtCosto = new JTextField();
-
-        if (valorInicial != null) {
-            cbxProducto.setSelectedItem(valorInicial.getProducto());
-            if (valorInicial.getLote() != null) {
-                txtNumeroLote.setText(valorInicial.getLote().getNumeroLote());
-            }
-            if (valorInicial.getFechaVencimiento() != null) {
-                txtVencimiento.setText(FORMATO_FECHA.format(valorInicial.getFechaVencimiento()));
-            }
-            txtCantidad.setText(String.valueOf(valorInicial.getCantidad()));
-            txtCosto.setText(String.valueOf(valorInicial.getCosto()));
+        if (productoPreseleccionado != null) {
+            cbxProducto.setSelectedItem(productoPreseleccionado);
         }
 
+        JTextField txtNumeroLote = new JTextField();
+        JTextField txtVencimiento = new JTextField();
+        JTextField txtCantidad = new JTextField(String.valueOf(cantidadInicial));
+        NumberTextField txtCosto = new NumberTextField();
+
         JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
-        panel.add(new javax.swing.JLabel("Producto:"));
+        panel.add(new JLabel("Producto:"));
         panel.add(cbxProducto);
-        panel.add(new javax.swing.JLabel("N° de Lote:"));
+        panel.add(new JLabel("N° de Lote:"));
         panel.add(txtNumeroLote);
-        panel.add(new javax.swing.JLabel("Vencimiento (dd/MM/yyyy):"));
+        panel.add(new JLabel("Vencimiento (dd/MM/yyyy):"));
         panel.add(txtVencimiento);
-        panel.add(new javax.swing.JLabel("Cantidad:"));
-        panel.add(txtCantidad);
-        panel.add(new javax.swing.JLabel("Costo Unitario:"));
+        panel.add(new JLabel("Costo Unitario:"));
         panel.add(txtCosto);
 
         int opcion = JOptionPane.showConfirmDialog(
@@ -188,10 +166,9 @@ public class VentanaCompraController implements AccionesABM {
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (opcion != JOptionPane.OK_OPTION) {
-            return null; // el usuario canceló
+            return null;
         }
 
-        // --- Validaciones 
         Producto producto = (Producto) cbxProducto.getSelectedItem();
         String numeroLote = txtNumeroLote.getText().trim();
 
@@ -211,10 +188,10 @@ public class VentanaCompraController implements AccionesABM {
             cantidad = Integer.parseInt(txtCantidad.getText().trim());
             costo = Double.parseDouble(txtCosto.getText().trim());
         } catch (ParseException pe) {
-            JOptionPane.showMessageDialog(vista, "La fecha de vencimiento debe tener el formato dd/MM/yyyy.");
+            JOptionPane.showMessageDialog(vista, "La fecha debe tener el formato dd/MM/yyyy.");
             return null;
         } catch (NumberFormatException ne) {
-            JOptionPane.showMessageDialog(vista, "Cantidad y Costo deben ser valores numéricos válidos.");
+            JOptionPane.showMessageDialog(vista, "Cantidad y Costo deben ser numéricos.");
             return null;
         }
 
@@ -223,15 +200,13 @@ public class VentanaCompraController implements AccionesABM {
             return null;
         }
 
-        // Armamos el Lote todavía en memoria, se persiste recién al Guardar la compra
-        Lote lote = (valorInicial != null && valorInicial.getLote() != null) ? valorInicial.getLote() : new Lote();
+        Lote lote = new Lote();
         lote.setNumeroLote(numeroLote);
         lote.setFechaVencimiento(fechaVencimiento);
         lote.setStockActual(cantidad);
         lote.setProducto(producto);
 
-        // Armamos el CompraDetalle correspondiente a esta línea
-        CompraDetalle detalle = (valorInicial != null) ? valorInicial : new CompraDetalle();
+        CompraDetalle detalle = new CompraDetalle();
         detalle.setProducto(producto);
         detalle.setLote(lote);
         detalle.setFechaVencimiento(fechaVencimiento);
@@ -241,56 +216,24 @@ public class VentanaCompraController implements AccionesABM {
         return detalle;
     }
 
-    // calculamos otv el total sumando todas las líneas y lo muestra en el campo Total
-    private void recalcularTotal() {
-        vista.gettTotal().setText(String.valueOf(modeloDetalle.calcularTotal()));
+    private void limpiarPanelProducto() {
+        productoSeleccionadoPanel = null;
+        vista.gettProducto().setText("");
+        vista.getSpinnerCantProducto().setValue(1);
     }
 
- 
-    //  Habilitar / limpiar formulario
-    
-
-    private void habilitarCampos(boolean habilitado) {
-        vista.gettFecha().setEnabled(habilitado);
-        vista.getBtnBuscarFuncionario().setEnabled(habilitado);
-        vista.getBtnAgregar().setEnabled(habilitado);
-        vista.getBtnEliminar().setEnabled(habilitado);
-        vista.getBtnActualizar().setEnabled(habilitado);
-    }
+    // --- Formulario general ---
 
     private void limpiarFormulario() {
-        vista.gettId().setText("");
-        vista.gettFecha().setText(FORMATO_FECHA.format(new Date())); // fecha de hoy por defecto
-        vista.gettTotal().setText("0.0");
-        vista.setFuncionarioSeleccionado(null);
+        vista.gettFecha().setDate(new Date());
+        vista.gettComprador().setText("");
         funcionarioSeleccionado = null;
-        modeloDetalle.setLista(new java.util.ArrayList<>());
-    }
-    //  Implementación de AccionesABM botones del toolbar genérico
- 
-    @Override
-    public void nuevo() {
-        limpiarFormulario();
-        habilitarCampos(true);
-        vista.getMiToolbar().estadoInicial(false);
+        limpiarPanelProducto();
+        modeloDetalle.setLista(new ArrayList<>());
     }
 
-    @Override
-    public void modificar() {
-    	// Solo permite registrar compras nuevas; no se modifican compras existentes para proteger el stock.
-        JOptionPane.showMessageDialog(vista,
-                "Las compras ya guardadas no se pueden modificar. Generá un ajuste de stock en su lugar.");
-    }
+    // --- Guardar la transacción completa ---
 
-    @Override
-    public void eliminar() {
-        JOptionPane.showMessageDialog(vista,
-                "Las compras ya guardadas no se pueden eliminar, para mantener la trazabilidad del stock.");
-    }
-
-    // Registra la transacción completa de compra afectando stock y lote.
-     
-    @Override
     public void guardar() {
         if (funcionarioSeleccionado == null) {
             JOptionPane.showMessageDialog(vista, "Seleccioná el funcionario responsable de la compra.");
@@ -304,19 +247,16 @@ public class VentanaCompraController implements AccionesABM {
         }
 
         try {
-            // Cabecera de la compra
             Compra compra = new Compra();
-            compra.setFecha(new Date());
+            compra.setFecha(vista.gettFecha().getDate() != null ? vista.gettFecha().getDate() : new Date());
             compra.setFuncionario(funcionarioSeleccionado);
             compra.setTotal(modeloDetalle.calcularTotal());
-            compraDAO.guardar(compra); // acá Hibernate le asigna el id autogenerado
+            compra.setDetalles(detalles);
 
-         // Por cada ítem: guarda el Lote aumenta stock, el CompraDetalle y el MovimientoStock ENTRADA
             for (CompraDetalle detalle : detalles) {
-                loteDAO.guardar(detalle.getLote());
-
-                detalle.setCompra(compra);
-                compraDetalleDAO.guardar(detalle);
+            	detalle.setCompra(compra);
+                Lote lote = loteDAO.guardar(detalle.getLote());
+                detalle.setLote(lote);
 
                 MovimientoStock movimiento = new MovimientoStock();
                 movimiento.setTipoMovimiento("ENTRADA");
@@ -326,27 +266,21 @@ public class VentanaCompraController implements AccionesABM {
                 movimiento.setFuncionario(funcionarioSeleccionado);
                 movimientoStockDAO.guardar(movimiento);
             }
+            
+            
+            compraDAO.guardar(compra);
+
 
             JOptionPane.showMessageDialog(vista, "Compra registrada con éxito. Total: " + compra.getTotal());
-
-            habilitarCampos(false);
-            vista.getMiToolbar().estadoInicial(true);
-            limpiarFormulario();
+            vista.dispose();
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(vista, "Error al guardar la compra: " + e.getMessage());
+        	e.printStackTrace();
+            //JOptionPane.showMessageDialog(vista, "Error al guardar la compra: " + e.getMessage());
         }
     }
 
-    @Override
     public void cancelar() {
-        habilitarCampos(false);
-        vista.getMiToolbar().estadoInicial(true);
-        limpiarFormulario();
-    }
-
-    @Override
-    public void salir() {
         vista.dispose();
     }
 }

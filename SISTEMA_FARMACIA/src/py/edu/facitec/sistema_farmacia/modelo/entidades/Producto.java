@@ -182,4 +182,12 @@ public class Producto {
     public void setVentaDetalles(List<VentaDetalle> ventaDetalles) {
         this.ventaDetalles = ventaDetalles;
     }
+    @Override
+    public String toString() {
+
+    	return getDescripcion();
+    }
+    
+    
+    
 }

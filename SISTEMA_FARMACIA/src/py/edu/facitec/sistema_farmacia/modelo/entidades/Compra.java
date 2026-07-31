@@ -25,7 +25,7 @@ public class Compra {
     private Funcionario funcionario;
 
     // Una compra puede tener muchos detalles
-    @OneToMany(mappedBy = "compra")
+    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CompraDetalle> detalles;
 
     public Compra() {

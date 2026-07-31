@@ -224,6 +224,7 @@ public class VentanaPrincipal extends JFrame {
 		}
 	}
 	
+	
 	private void abrirVenta() {
 if(vVenta == null  || !vCategoria.isVisible()) {
 	vVenta = new TransaccionCompra();
