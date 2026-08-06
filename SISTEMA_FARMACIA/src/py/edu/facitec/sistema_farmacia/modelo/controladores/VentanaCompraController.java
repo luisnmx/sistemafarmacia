@@ -69,7 +69,7 @@ public class VentanaCompraController {
         limpiarFormulario();
     }
 
-    // --- Buscar Funcionario (comprador) ---
+    // --- Buscar Funcionario (comprador)
 
     private void buscarFuncionario() {
         List<Funcionario> lista = funcionarioDAO.recuperarTodo();

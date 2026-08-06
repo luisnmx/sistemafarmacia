@@ -27,18 +27,6 @@ public class Lote {
     @JoinColumn(name = "producto_id")
     private Producto producto;
 
-    // Un lote puede estar en muchos detalles de compra
-    @OneToMany(mappedBy = "lote")
-    private List<CompraDetalle> compraDetalles;
-
-    // Un lote puede estar en muchos detalles de venta
-    @OneToMany(mappedBy = "lote")
-    private List<VentaDetalle> ventaDetalles;
-
-    // Un lote puede tener muchos movimientos de stock
-    @OneToMany(mappedBy = "lote")
-    private List<MovimientoStock> movimientosStock;
-
     public Lote() {
     }
 
@@ -82,27 +70,5 @@ public class Lote {
         this.producto = producto;
     }
 
-    public List<CompraDetalle> getCompraDetalles() {
-        return compraDetalles;
-    }
-
-    public void setCompraDetalles(List<CompraDetalle> compraDetalles) {
-        this.compraDetalles = compraDetalles;
-    }
-
-    public List<VentaDetalle> getVentaDetalles() {
-        return ventaDetalles;
-    }
-
-    public void setVentaDetalles(List<VentaDetalle> ventaDetalles) {
-        this.ventaDetalles = ventaDetalles;
-    }
-
-    public List<MovimientoStock> getMovimientosStock() {
-        return movimientosStock;
-    }
-
-    public void setMovimientosStock(List<MovimientoStock> movimientosStock) {
-        this.movimientosStock = movimientosStock;
-    }
+    
 }
