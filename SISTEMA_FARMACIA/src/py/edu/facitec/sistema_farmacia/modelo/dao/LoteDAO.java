@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.query.Query;
 
 import py.edu.facitec.sistema_farmacia.modelo.entidades.Lote;
+import py.edu.facitec.sistema_farmacia.modelo.entidades.Producto;
 
 public class LoteDAO extends GenericDAO<Lote> {
 
@@ -32,4 +33,18 @@ public class LoteDAO extends GenericDAO<Lote> {
         return lista;
     }
 
+    public Lote buscarPorProductoYNumero(Producto producto, String numeroLote) {
+        iniciarTransaccion();
+
+        String hql = "from Lote where producto.id = :prodId and numeroLote = :numLote";
+        Query<Lote> query = getSession().createQuery(hql, Lote.class);
+        query.setParameter("prodId", producto.getId());
+        query.setParameter("numLote", numeroLote);
+
+        List<Lote> resultado = query.getResultList();
+
+        getSession().getTransaction().commit();
+
+        return resultado.isEmpty() ? null : resultado.get(0);
+    }
 }

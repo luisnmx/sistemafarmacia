@@ -139,6 +139,10 @@ public class VentanaCompraController {
     }
 
     // Formulario modal para completar producto + lote + cantidad + costo de una línea
+ // Formulario modal para completar producto + lote + cantidad + costo de una línea
+  
+    
+ // Formulario modal para completar producto + lote + cantidad + costo de una línea
     private CompraDetalle pedirDatosDeLinea(List<Producto> productos, Producto productoPreseleccionado, int cantidadInicial) {
 
         JComboBox<Producto> cbxProducto = new JComboBox<>(productos.toArray(new Producto[0]));
@@ -154,9 +158,9 @@ public class VentanaCompraController {
         JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
         panel.add(new JLabel("Producto:"));
         panel.add(cbxProducto);
-        panel.add(new JLabel("N° de Lote:"));
+        panel.add(new JLabel("N° de Lote (poné 000 si no aplica):"));
         panel.add(txtNumeroLote);
-        panel.add(new JLabel("Vencimiento (dd/MM/yyyy):"));
+        panel.add(new JLabel("Vencimiento (dd/MM/yyyy, opcional):"));
         panel.add(txtVencimiento);
         panel.add(new JLabel("Costo Unitario:"));
         panel.add(txtCosto);
@@ -172,19 +176,22 @@ public class VentanaCompraController {
         Producto producto = (Producto) cbxProducto.getSelectedItem();
         String numeroLote = txtNumeroLote.getText().trim();
 
+        // Obligatorios: producto, número de lote, cantidad y costo.
+        // El vencimiento queda opcional (para el caso "000" que no vence).
         if (producto == null || numeroLote.isEmpty()
-                || txtVencimiento.getText().trim().isEmpty()
                 || txtCantidad.getText().trim().isEmpty()
                 || txtCosto.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(vista, "Todos los campos de la línea son obligatorios.");
+            JOptionPane.showMessageDialog(vista, "Producto, número de lote, cantidad y costo son obligatorios.");
             return null;
         }
 
-        Date fechaVencimiento;
+        Date fechaVencimiento = null;
         int cantidad;
         double costo;
         try {
-            fechaVencimiento = FORMATO_FECHA.parse(txtVencimiento.getText().trim());
+            if (!txtVencimiento.getText().trim().isEmpty()) {
+                fechaVencimiento = FORMATO_FECHA.parse(txtVencimiento.getText().trim());
+            }
             cantidad = Integer.parseInt(txtCantidad.getText().trim());
             costo = Double.parseDouble(txtCosto.getText().trim());
         } catch (ParseException pe) {
@@ -200,22 +207,38 @@ public class VentanaCompraController {
             return null;
         }
 
-        Lote lote = new Lote();
-        lote.setNumeroLote(numeroLote);
-        lote.setFechaVencimiento(fechaVencimiento);
-        lote.setStockActual(cantidad);
-        lote.setProducto(producto);
+        // Este Lote es solo un "borrador" en memoria. La decisión real de
+        // "buscar existente o crear nuevo" pasa en guardar(), con obtenerOCrearLote().
+        Lote loteBorrador = new Lote();
+        loteBorrador.setNumeroLote(numeroLote);
+        loteBorrador.setFechaVencimiento(fechaVencimiento);
+        loteBorrador.setStockActual(cantidad);
+        loteBorrador.setProducto(producto);
 
         CompraDetalle detalle = new CompraDetalle();
         detalle.setProducto(producto);
-        detalle.setLote(lote);
+        detalle.setLote(loteBorrador);
         detalle.setFechaVencimiento(fechaVencimiento);
         detalle.setCantidad(cantidad);
         detalle.setCosto(costo);
 
         return detalle;
     }
+    
+    
+    private Lote obtenerOCrearLote(Lote loteBorrador) throws Exception {
+        Producto producto = loteBorrador.getProducto();
+        String numeroLote = loteBorrador.getNumeroLote();
 
+        Lote loteExistente = loteDAO.buscarPorProductoYNumero(producto, numeroLote);
+
+        if (loteExistente != null) {
+            loteExistente.setStockActual(loteExistente.getStockActual() + loteBorrador.getStockActual());
+            return loteDAO.guardar(loteExistente);
+        } else {
+            return loteDAO.guardar(loteBorrador);
+        }
+    }
     private void limpiarPanelProducto() {
         productoSeleccionadoPanel = null;
         vista.gettProducto().setText("");
@@ -255,7 +278,7 @@ public class VentanaCompraController {
 
             for (CompraDetalle detalle : detalles) {
             	detalle.setCompra(compra);
-                Lote lote = loteDAO.guardar(detalle.getLote());
+            	Lote lote = obtenerOCrearLote(detalle.getLote());
                 detalle.setLote(lote);
 
                 MovimientoStock movimiento = new MovimientoStock();
