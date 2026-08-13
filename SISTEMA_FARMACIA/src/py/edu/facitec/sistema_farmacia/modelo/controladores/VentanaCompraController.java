@@ -1,5 +1,5 @@
 package py.edu.facitec.sistema_farmacia.modelo.controladores;
-
+import py.edu.facitec.sistema_farmacia.modelo.dao.CompraDetalleDAO;
 import java.awt.GridLayout;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -12,6 +12,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import com.toedter.calendar.JDateChooser;
 
 import py.com.cs.xnumberfield.component.NumberTextField;
 import py.edu.facitec.sistema_farmacia.modelo.dao.CompraDAO;
@@ -37,7 +39,7 @@ public class VentanaCompraController {
     private MovimientoStockDAO movimientoStockDAO;
     private ProductoDAO productoDAO;
     private FuncionarioDAO funcionarioDAO;
-
+    private CompraDetalleDAO compraDetalleDAO; 
     private ModeloTablaCompraDetalle modeloDetalle;
 
     private Funcionario funcionarioSeleccionado;
@@ -48,6 +50,7 @@ public class VentanaCompraController {
     public VentanaCompraController(TransaccionCompra vista) {
         this.vista = vista;
         this.compraDAO = new CompraDAO();
+        this.compraDetalleDAO = new CompraDetalleDAO(); 
         this.loteDAO = new LoteDAO();
         this.movimientoStockDAO = new MovimientoStockDAO();
         this.productoDAO = new ProductoDAO();
@@ -113,16 +116,15 @@ public class VentanaCompraController {
     // --- Agregar / quitar líneas de detalle ---
 
     private void agregarProducto() {
-        List<Producto> productos = productoDAO.recuperarTodo();
-        if (productos.isEmpty()) {
-            JOptionPane.showMessageDialog(vista, "No hay productos registrados.");
+        if (productoSeleccionadoPanel == null) {
+            JOptionPane.showMessageDialog(vista, "Elegí un producto con el botón \"...\" antes de agregar.");
             return;
         }
 
         // Precargamos con lo que el usuario ya eligió arriba (producto + cantidad del spinner)
         int cantidadPanel = (int) vista.getSpinnerCantProducto().getValue();
 
-        CompraDetalle detalle = pedirDatosDeLinea(productos, productoSeleccionadoPanel, cantidadPanel);
+        CompraDetalle detalle = pedirDatosDeLinea(productoSeleccionadoPanel, cantidadPanel);
         if (detalle != null) {
             modeloDetalle.agregar(detalle);
             limpiarPanelProducto(); // listo para cargar la próxima línea
@@ -138,92 +140,79 @@ public class VentanaCompraController {
         modeloDetalle.quitar(fila);
     }
 
-    // Formulario modal para completar producto + lote + cantidad + costo de una línea
- // Formulario modal para completar producto + lote + cantidad + costo de una línea
-  
     
  // Formulario modal para completar producto + lote + cantidad + costo de una línea
-    private CompraDetalle pedirDatosDeLinea(List<Producto> productos, Producto productoPreseleccionado, int cantidadInicial) {
+ // Formulario modal para completar lote + vencimiento + costo de una línea.
+ // El producto ya viene elegido desde el panel de arriba.
+ private CompraDetalle pedirDatosDeLinea(Producto producto, int cantidadInicial) {
 
-        JComboBox<Producto> cbxProducto = new JComboBox<>(productos.toArray(new Producto[0]));
-        if (productoPreseleccionado != null) {
-            cbxProducto.setSelectedItem(productoPreseleccionado);
-        }
+     JLabel lblProductoElegido = new JLabel(producto.getDescripcion());
+     JTextField txtNumeroLote = new JTextField();
+     JDateChooser dateVencimiento = new JDateChooser();
+     dateVencimiento.setDateFormatString("dd/MM/yyyy");
+     //JTextField txtVencimiento = new JTextField();
+     JTextField txtCantidad = new JTextField(String.valueOf(cantidadInicial));
+     NumberTextField txtCosto = new NumberTextField();
 
-        JTextField txtNumeroLote = new JTextField();
-        JTextField txtVencimiento = new JTextField();
-        JTextField txtCantidad = new JTextField(String.valueOf(cantidadInicial));
-        NumberTextField txtCosto = new NumberTextField();
+     JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
+     panel.add(new JLabel("Producto:"));
+     panel.add(lblProductoElegido);
+     panel.add(new JLabel("N° de Lote (000 si no aplica):"));
+     panel.add(txtNumeroLote);
+     panel.add(new JLabel("Vencimiento:"));
+     panel.add(dateVencimiento);
+     //panel.add(new JLabel("Vencimiento (dd/MM/yyyy, opcional):"));
+     //panel.add(txtVencimiento);
+     panel.add(new JLabel("Costo Unitario:"));
+     panel.add(txtCosto);
 
-        JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
-        panel.add(new JLabel("Producto:"));
-        panel.add(cbxProducto);
-        panel.add(new JLabel("N° de Lote (poné 000 si no aplica):"));
-        panel.add(txtNumeroLote);
-        panel.add(new JLabel("Vencimiento (dd/MM/yyyy, opcional):"));
-        panel.add(txtVencimiento);
-        panel.add(new JLabel("Costo Unitario:"));
-        panel.add(txtCosto);
+     int opcion = JOptionPane.showConfirmDialog(
+             vista, panel, "Datos del producto comprado",
+             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        int opcion = JOptionPane.showConfirmDialog(
-                vista, panel, "Datos del producto comprado",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+     if (opcion != JOptionPane.OK_OPTION) {
+         return null;
+     }
 
-        if (opcion != JOptionPane.OK_OPTION) {
-            return null;
-        }
+     String numeroLote = txtNumeroLote.getText().trim();
 
-        Producto producto = (Producto) cbxProducto.getSelectedItem();
-        String numeroLote = txtNumeroLote.getText().trim();
+     // Obligatorios: número de lote, cantidad y costo.
+     // El vencimiento queda opcional (para el caso "000" que no vence).
+     if (numeroLote.isEmpty()
+             || txtCantidad.getText().trim().isEmpty()
+             || txtCosto.getText().trim().isEmpty()) {
+         JOptionPane.showMessageDialog(vista, "Número de lote, cantidad y costo son obligatorios.");
+         return null;
+     }
+     Date fechaVencimiento;
+     int cantidad;
+     double costo;
+     try {
+         fechaVencimiento = dateVencimiento.getDate(); // null si no seleccionó nada (queda opcional)
+         cantidad = Integer.parseInt(txtCantidad.getText().trim());
+         costo = Double.parseDouble(txtCosto.getText().trim());
+     } catch (NumberFormatException ne) {
+         JOptionPane.showMessageDialog(vista, "Cantidad y Costo deben ser numéricos.");
+         return null;
+     }
 
-        // Obligatorios: producto, número de lote, cantidad y costo.
-        // El vencimiento queda opcional (para el caso "000" que no vence).
-        if (producto == null || numeroLote.isEmpty()
-                || txtCantidad.getText().trim().isEmpty()
-                || txtCosto.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(vista, "Producto, número de lote, cantidad y costo son obligatorios.");
-            return null;
-        }
+     // Este Lote es solo un "borrador" en memoria. La decisión real de
+     // "buscar existente o crear nuevo" pasa en guardar(), con obtenerOCrearLote().
+     Lote loteBorrador = new Lote();
+     loteBorrador.setNumeroLote(numeroLote);
+     loteBorrador.setFechaVencimiento(fechaVencimiento);
+     loteBorrador.setStockActual(cantidad);
+     loteBorrador.setProducto(producto);
 
-        Date fechaVencimiento = null;
-        int cantidad;
-        double costo;
-        try {
-            if (!txtVencimiento.getText().trim().isEmpty()) {
-                fechaVencimiento = FORMATO_FECHA.parse(txtVencimiento.getText().trim());
-            }
-            cantidad = Integer.parseInt(txtCantidad.getText().trim());
-            costo = Double.parseDouble(txtCosto.getText().trim());
-        } catch (ParseException pe) {
-            JOptionPane.showMessageDialog(vista, "La fecha debe tener el formato dd/MM/yyyy.");
-            return null;
-        } catch (NumberFormatException ne) {
-            JOptionPane.showMessageDialog(vista, "Cantidad y Costo deben ser numéricos.");
-            return null;
-        }
+     CompraDetalle detalle = new CompraDetalle();
+     detalle.setProducto(producto);
+     detalle.setLote(loteBorrador);
+     detalle.setFechaVencimiento(fechaVencimiento);
+     detalle.setCantidad(cantidad);
+     detalle.setCosto(costo);
 
-        if (cantidad <= 0) {
-            JOptionPane.showMessageDialog(vista, "La cantidad debe ser mayor a cero.");
-            return null;
-        }
-
-        // Este Lote es solo un "borrador" en memoria. La decisión real de
-        // "buscar existente o crear nuevo" pasa en guardar(), con obtenerOCrearLote().
-        Lote loteBorrador = new Lote();
-        loteBorrador.setNumeroLote(numeroLote);
-        loteBorrador.setFechaVencimiento(fechaVencimiento);
-        loteBorrador.setStockActual(cantidad);
-        loteBorrador.setProducto(producto);
-
-        CompraDetalle detalle = new CompraDetalle();
-        detalle.setProducto(producto);
-        detalle.setLote(loteBorrador);
-        detalle.setFechaVencimiento(fechaVencimiento);
-        detalle.setCantidad(cantidad);
-        detalle.setCosto(costo);
-
-        return detalle;
-    }
+     return detalle;
+ }
     
     
     private Lote obtenerOCrearLote(Lote loteBorrador) throws Exception {
@@ -274,12 +263,15 @@ public class VentanaCompraController {
             compra.setFecha(vista.gettFecha().getDate() != null ? vista.gettFecha().getDate() : new Date());
             compra.setFuncionario(funcionarioSeleccionado);
             compra.setTotal(modeloDetalle.calcularTotal());
-            compra.setDetalles(detalles);
+
+            compra = compraDAO.guardar(compra); // "compra" pasa a ser la versión gestionada, con id
 
             for (CompraDetalle detalle : detalles) {
-            	detalle.setCompra(compra);
-            	Lote lote = obtenerOCrearLote(detalle.getLote());
+                Lote lote = obtenerOCrearLote(detalle.getLote());
                 detalle.setLote(lote);
+                detalle.setCompra(compra);
+
+                detalle = compraDetalleDAO.guardar(detalle); // recién ahora el detalle se persiste
 
                 MovimientoStock movimiento = new MovimientoStock();
                 movimiento.setTipoMovimiento("ENTRADA");
@@ -289,17 +281,13 @@ public class VentanaCompraController {
                 movimiento.setFuncionario(funcionarioSeleccionado);
                 movimientoStockDAO.guardar(movimiento);
             }
-            
-            
-            compraDAO.guardar(compra);
-
 
             JOptionPane.showMessageDialog(vista, "Compra registrada con éxito. Total: " + compra.getTotal());
             vista.dispose();
 
         } catch (Exception e) {
-        	e.printStackTrace();
-            //JOptionPane.showMessageDialog(vista, "Error al guardar la compra: " + e.getMessage());
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(vista, "Error al guardar la compra: " + e.getMessage());
         }
     }
 
