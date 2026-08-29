@@ -1,4 +1,5 @@
 package py.edu.facitec.sistema_farmacia.modelo.controladores;
+
 import py.edu.facitec.sistema_farmacia.modelo.dao.CompraDetalleDAO;
 import java.awt.GridLayout;
 import java.text.ParseException;
@@ -31,6 +32,7 @@ import py.edu.facitec.sistema_farmacia.modelo.modelotabla.ModeloTablaCompraDetal
 import py.edu.facitec.sistema_farmacia.modelo.vistas.TransaccionCompra;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
 public class VentanaCompraController {
 
     private TransaccionCompra vista;
@@ -44,7 +46,7 @@ public class VentanaCompraController {
     private ModeloTablaCompraDetalle modeloDetalle;
 
     private Funcionario funcionarioSeleccionado;
-    private Producto productoSeleccionadoPanel; // el elegido con el botón "..." de arriba
+    private Producto productoSeleccionadoPanel;
 
     private static final SimpleDateFormat FORMATO_FECHA = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -67,13 +69,10 @@ public class VentanaCompraController {
         vista.getMbtnGuardar().addActionListener(e -> guardar());
         vista.getMbtnCancelar().addActionListener(e -> cancelar());
 
-        // Cantidad por defecto del spinner: arranca en 1
         vista.getSpinnerCantProducto().setValue(1);
 
         limpiarFormulario();
     }
-
-    // --- Buscar Funcionario (comprador)
 
     private void buscarFuncionario() {
         List<Funcionario> lista = funcionarioDAO.recuperarTodo();
@@ -94,8 +93,6 @@ public class VentanaCompraController {
         }
     }
 
-    // --- Buscar Producto (panel superior) ---
-
     private void buscarProductoPanel() {
         List<Producto> productos = productoDAO.recuperarTodo();
         if (productos.isEmpty()) {
@@ -114,21 +111,18 @@ public class VentanaCompraController {
         }
     }
 
-    // --- Agregar / quitar líneas de detalle ---
-
     private void agregarProducto() {
         if (productoSeleccionadoPanel == null) {
             JOptionPane.showMessageDialog(vista, "Elegí un producto con el botón \"...\" antes de agregar.");
             return;
         }
 
-        // Precargamos con lo que el usuario ya eligió arriba (producto + cantidad del spinner)
         int cantidadPanel = (int) vista.getSpinnerCantProducto().getValue();
 
         CompraDetalle detalle = pedirDatosDeLinea(productoSeleccionadoPanel, cantidadPanel);
         if (detalle != null) {
             modeloDetalle.agregar(detalle);
-            limpiarPanelProducto(); // listo para cargar la próxima línea
+            limpiarPanelProducto();
         }
     }
 
@@ -141,10 +135,6 @@ public class VentanaCompraController {
         modeloDetalle.quitar(fila);
     }
 
-    
- // Formulario modal para completar producto + lote + cantidad + costo de una línea
- // Formulario modal para completar lote + vencimiento + costo de una línea.
- // El producto ya viene elegido desde el panel de arriba.
     private CompraDetalle pedirDatosDeLinea(Producto producto, int cantidadInicial) {
 
         JLabel lblProductoElegido = new JLabel(producto.getDescripcion());
@@ -154,7 +144,7 @@ public class VentanaCompraController {
         JTextField txtCantidad = new JTextField(String.valueOf(cantidadInicial));
         NumberTextField txtCosto = new NumberTextField();
 
-        dateVencimiento.setEnabled(false); // arranca deshabilitado: todavía no hay lote cargado
+        dateVencimiento.setEnabled(false);
 
         txtNumeroLote.getDocument().addDocumentListener(new DocumentListener() {
             private void actualizarEstado() {
@@ -199,7 +189,7 @@ public class VentanaCompraController {
         int cantidad;
         double costo;
         try {
-            fechaVencimiento = dateVencimiento.getDate(); // null si no seleccionó nada (queda opcional)
+            fechaVencimiento = dateVencimiento.getDate();
             cantidad = Integer.parseInt(txtCantidad.getText().trim());
             costo = Double.parseDouble(txtCosto.getText().trim());
         } catch (NumberFormatException ne) {
@@ -212,8 +202,6 @@ public class VentanaCompraController {
             return null;
         }
 
-        // Este Lote es solo un "borrador" en memoria. La decisión real de
-        // "buscar existente o crear nuevo" pasa en guardar(), con obtenerOCrearLote().
         Lote loteBorrador = null;
         if (!numeroLote.isEmpty()) {
             loteBorrador = new Lote();
@@ -225,13 +213,14 @@ public class VentanaCompraController {
 
         CompraDetalle detalle = new CompraDetalle();
         detalle.setProducto(producto);
-        detalle.setLote(loteBorrador); // puede quedar null si no cargaron lote
+        detalle.setLote(loteBorrador);
         detalle.setFechaVencimiento(fechaVencimiento);
         detalle.setCantidad(cantidad);
         detalle.setCosto(costo);
 
         return detalle;
     }
+
     private Lote obtenerOCrearLote(Lote loteBorrador) throws Exception {
         Producto producto = loteBorrador.getProducto();
         String numeroLote = loteBorrador.getNumeroLote();
@@ -245,13 +234,12 @@ public class VentanaCompraController {
             return loteDAO.guardar(loteBorrador);
         }
     }
+
     private void limpiarPanelProducto() {
         productoSeleccionadoPanel = null;
         vista.gettProducto().setText("");
         vista.getSpinnerCantProducto().setValue(1);
     }
-
-    // --- Formulario general ---
 
     private void limpiarFormulario() {
         vista.gettFecha().setDate(new Date());
@@ -260,8 +248,6 @@ public class VentanaCompraController {
         limpiarPanelProducto();
         modeloDetalle.setLista(new ArrayList<>());
     }
-
-    // --- Guardar la transacción completa ---
 
     public void guardar() {
         if (funcionarioSeleccionado == null) {
@@ -281,7 +267,7 @@ public class VentanaCompraController {
             compra.setFuncionario(funcionarioSeleccionado);
             compra.setTotal(modeloDetalle.calcularTotal());
 
-            compra = compraDAO.guardar(compra); // "compra" pasa a ser la versión gestionada, con id
+            compra = compraDAO.guardar(compra);
 
             for (CompraDetalle detalle : detalles) {
                 if (detalle.getLote() != null) {
@@ -290,9 +276,8 @@ public class VentanaCompraController {
                 }
                 detalle.setCompra(compra);
 
-                detalle = compraDetalleDAO.guardar(detalle); // recién ahora el detalle se persiste
+                detalle = compraDetalleDAO.guardar(detalle);
 
-                // Solo registramos movimiento de stock si el producto se maneja por lote
                 if (detalle.getLote() != null) {
                     MovimientoStock movimiento = new MovimientoStock();
                     movimiento.setTipoMovimiento("ENTRADA");
@@ -316,4 +301,4 @@ public class VentanaCompraController {
     public void cancelar() {
         vista.dispose();
     }
-}}}
+    }

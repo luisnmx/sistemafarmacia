@@ -6,31 +6,81 @@ import org.hibernate.query.Query;
 
 import py.edu.facitec.sistema_farmacia.modelo.entidades.MovimientoStock;
 
-public class MovimientoStockDAO extends GenericDAO<MovimientoStock> {
+public class MovimientoStockDAO
+		extends GenericDAO<MovimientoStock> {
 
-    public MovimientoStockDAO() {
-        super(MovimientoStock.class);
-    }
+	public MovimientoStockDAO() {
 
-    @Override
-    public List<MovimientoStock> recuperarPorFiltro(String filtro) {
+		super(MovimientoStock.class);
+	}
 
-        iniciarTransaccion();
+	@Override
+	public List<MovimientoStock> recuperarPorFiltro(
+			String filtro) {
 
-        String hql = "from MovimientoStock where upper(tipoMovimiento) like :filtro "
-                + "or upper(funcionario.nombre) like :filtro "
-                + "or upper(funcionario.apellido) like :filtro "
-                + "order by id desc";
+		iniciarTransaccion();
 
-        Query<MovimientoStock> query = getSession().createQuery(hql, MovimientoStock.class);
+		String hql =
+				"select distinct m "
+				+ "from MovimientoStock m "
+				+ "left join fetch m.lote l "
+				+ "left join fetch l.producto p "
+				+ "left join fetch m.funcionario f "
+				+ "where upper(m.tipoMovimiento) like :filtro "
+				+ "or upper(p.descripcion) like :filtro "
+				+ "or upper(l.numeroLote) like :filtro "
+				+ "or upper(f.nombre) like :filtro "
+				+ "or upper(f.apellido) like :filtro "
+				+ "order by m.id desc";
 
-        query.setParameter("filtro", "%" + filtro.toUpperCase() + "%");
+		Query<MovimientoStock> query =
+				getSession().createQuery(
+						hql,
+						MovimientoStock.class);
 
-        List<MovimientoStock> lista = query.getResultList();
+		query.setParameter(
+				"filtro",
+				"%" + filtro.toUpperCase() + "%");
 
-        getSession().getTransaction().commit();
+		List<MovimientoStock> lista =
+				query.getResultList();
 
-        return lista;
-    }
+		getSession()
+				.getTransaction()
+				.commit();
 
+		return lista;
+	}
+
+	/**
+	 * Recupera todos los movimientos
+	 * junto con lote, producto y funcionario.
+	 */
+	public List<MovimientoStock>
+			recuperarTodosConDetalles() {
+
+		iniciarTransaccion();
+
+		String hql =
+				"select distinct m "
+				+ "from MovimientoStock m "
+				+ "left join fetch m.lote l "
+				+ "left join fetch l.producto p "
+				+ "left join fetch m.funcionario f "
+				+ "order by m.id desc";
+
+		Query<MovimientoStock> query =
+				getSession().createQuery(
+						hql,
+						MovimientoStock.class);
+
+		List<MovimientoStock> lista =
+				query.getResultList();
+
+		getSession()
+				.getTransaction()
+				.commit();
+
+		return lista;
+	}
 }

@@ -18,6 +18,7 @@ import javax.swing.border.EmptyBorder;
 import py.edu.facitec.reutilizacion.botones.MiBoton;
 import py.edu.facitec.reutilizacion.paneles.PanelFondo;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.TransaccionCompra;
+import py.edu.facitec.sistema_farmacia.modelo.vistas.TransaccionMovimientoStock;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.TransaccionVenta;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaCategoria;
 import py.edu.facitec.sistema_farmacia.modelo.vistas.VentanaCliente;
@@ -38,6 +39,8 @@ public class VentanaPrincipal extends JFrame {
 	private VentanaMarca vMarca;
 	private VentanaProducto vProducto;
 	private TransaccionVenta vVenta;
+	private TransaccionCompra vCompra;
+	private TransaccionMovimientoStock vMovimientoStock;
 	/**
 	 * Launch the application.
 	 */
@@ -80,10 +83,12 @@ public class VentanaPrincipal extends JFrame {
 		mnMovimiento.add(mntmVenta);
 
 		JMenuItem mntmCompra = new JMenuItem("Compra");
-		mntmCompra.addActionListener(e -> {
-			// abrirCompra();
-		});
+		mntmCompra.addActionListener(e -> abrirCompra());
 		mnMovimiento.add(mntmCompra);
+
+		JMenuItem mntmMovimientoStock = new JMenuItem("Movimiento de Stock");
+		mntmMovimientoStock.addActionListener(e -> abrirMovimientoStock());
+		mnMovimiento.add(mntmMovimientoStock);
 
 		// Registro
 		JMenu mnRegistro = new JMenu("Registro");
@@ -149,10 +154,20 @@ public class VentanaPrincipal extends JFrame {
 		// BOTON VENTA
 		MiBoton mbtnVenta = new MiBoton();
 		mbtnVenta.setText("Venta");
-		mbtnVenta.addActionListener(e -> {
-			 abrirVenta();
-		});
+		mbtnVenta.addActionListener(e -> abrirVenta());
 		toolBar.add(mbtnVenta);
+
+		// BOTON COMPRA
+		MiBoton mbtnCompra = new MiBoton();
+		mbtnCompra.setText("Compra");
+		mbtnCompra.addActionListener(e -> abrirCompra());
+		toolBar.add(mbtnCompra);
+
+		// BOTON MOVIMIENTO DE STOCK
+		MiBoton mbtnMovimientoStock = new MiBoton();
+		mbtnMovimientoStock.setText("Mov. Stock");
+		mbtnMovimientoStock.addActionListener(e -> abrirMovimientoStock());
+		toolBar.add(mbtnMovimientoStock);
 
 		// BOTON CLIENTE
 		MiBoton mbtnCliente = new MiBoton();
@@ -227,15 +242,33 @@ public class VentanaPrincipal extends JFrame {
 	
 	
 	private void abrirVenta() {
-if(vVenta == null  || !vVenta.isVisible()) {
-	vVenta = new TransaccionVenta();
-	vVenta.setUpController();
-	vVenta.setVisible(true);
-	
-} else {
-	vVenta.toFront();
-}
+		if (vVenta == null || !vVenta.isVisible()) {
+			vVenta = new TransaccionVenta();
+			vVenta.setUpController();
+			vVenta.setVisible(true);
+		} else {
+			vVenta.toFront();
+		}
+	}
 
+	private void abrirCompra() {
+		if (vCompra == null || !vCompra.isVisible()) {
+			vCompra = new TransaccionCompra();
+			vCompra.setUpController();
+			vCompra.setVisible(true);
+		} else {
+			vCompra.toFront();
+		}
+	}
+
+	private void abrirMovimientoStock() {
+		if (vMovimientoStock == null || !vMovimientoStock.isVisible()) {
+			vMovimientoStock = new TransaccionMovimientoStock();
+			vMovimientoStock.setUpController();
+			vMovimientoStock.setVisible(true);
+		} else {
+			vMovimientoStock.toFront();
+		}
 	}
 
 	public void abrirMarca() {
