@@ -1,5 +1,6 @@
-package py.edu.facitec.proyecto_ventas.util;
+package py.edu.facitec.sistema_farmacia.util;
 
+import java.awt.Dialog.ModalExclusionType;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +57,7 @@ public class ReporteUtil {
 
             JasperViewer viewer =
                     new JasperViewer(print, false);
-            viewer.setModalEclusionType(ModalExcusionType.APLICATION_EXCLUDE);
+            viewer.setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
             viewer.setTitle(nombreReporte);
             viewer.setVisible(true);
 
